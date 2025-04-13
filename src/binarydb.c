@@ -1,5 +1,4 @@
 #include "common.h"
-#include <errno.h>
 
 int AddData (StatData** binData, int* size);
 int DeleteData (StatData** binData, int* size, int index);
@@ -79,12 +78,12 @@ int main (void)
                     {
                         printf ("Данные не будут удалены!");
                     }
+                    getchar();
                 }
                 else
                 {
                     printf("Хранилище данных пусто! Удаление невозможно!");
                 }
-                getchar();
                 break;
             case 3:
                 if (size > 0)
@@ -203,6 +202,8 @@ int AddData (StatData** binData, int* size)
 int DeleteData (StatData** binData, int* size, int index)
 {
     char ch;
+    printf("%-19s %-19s %-19s %-19s %-19s %-19s\n",
+        "№", "id", "count", "cost", "primary", "mode");
     PrintDataByIndex(*binData, *size, index);
     printf("Вы действительно хотите удалить данные (y/n)? ");
     getchar();
@@ -247,28 +248,26 @@ void PrintDataByIndex (StatData* binData, int size, int index)
     }
     else
     {
-        printf ("\nДанные №%d.\n", index + 1);
-        printf ("id: %ld\n", binData[index].id);
-        printf ("count: %d\n", binData[index].count);
-        printf ("cost: %.3f\n", binData[index].cost);
-        printf ("primary: %c\n", binData[index].primary ? 'y' : 'n');
+        printf("%-17d 0x%-17lX %-19d %-19.3e %-19c ", index + 1, binData[index].id,
+                binData[index].count, binData[index].cost,
+                binData[index].primary ? 'y' : 'n');
         PrintModeBinary (binData[index].mode);
+        putchar ('\n');
     }
 }
 
 void PrintModeBinary (unsigned int mode)
 {
-    printf ("mode: ");
     for (int i = MAX_MODE_BITS - 1; i >= 0; i--)
     {
         putchar (mode & (1 << i) ? '1' : '0');
     }
-    putchar ('\n');
 }
 
 void PrintData (StatData* binData, int size)
 {
-    printf ("\n*** Список данных ***\n");
+    printf("%-19s %-19s %-19s %-19s %-19s %-19s\n",
+            "№", "id", "count", "cost", "primary", "mode");
     for (int i = 0; i < size; i++)
     {
         PrintDataByIndex (binData, size, i);
