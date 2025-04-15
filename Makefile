@@ -8,32 +8,50 @@ BIN_DIR = $(TASK_PATH)/bin
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 
 # Определяем объектные файлы на основе исходников
-OBJS = $(SRCS:.c=.o)
+OBJS = $(BIN_DIR)/*.o
 
-# Имя исполняемого файла
-TARGET = $(BIN_DIR)/my_program
+# Объектные файлы для binarydb
+BINARYDB_OBJS = \
+    $(BIN_DIR)/binarydb.o
+
+# Объектные файлы для dataprocessor
+DATAPROC_OBJS = \
+    $(BIN_DIR)/dataprocessor.o
+
+# Цели сборки по умолчанию
+TARGETS = binarydb dataprocessor
 
 # Текстовые файлы для сериализации
 FILES = $(wildcard $(BIN_DIR)/*.txt)
 
 # Компилятор и флаги
 CC = gcc
-CFLAGS = -I$(INC_DIR)
+WARN_FLAGS = -Wall -Werror
+CFLAGS = -I$(INC_DIR) $(WARN_FLAGS)
 
-# Правило по умолчанию
-all: $(TARGET)
+# Правило для цели сборки по умолчанию
+all: $(TARGETS)
 
-# Правило для создания исполняемого файла
-$(TARGET): $(OBJS)
+# Правила для промежуточных целей сборки по умолчанию
+binarydb: $(BIN_DIR)/binarydb
+
+dataprocessor: $(BIN_DIR)/dataprocessor
+
+# Правило для создания бинарника binarydb
+$(BIN_DIR)/binarydb: $(BINARYDB_OBJS)
 	$(CC) -o $@ $^
 
-# Правило для компиляции .c файлов в .o файлы
-%.o: %.c
+# Правило для создания бинарника dataprocessor
+$(BIN_DIR)/dataprocessor: $(DATAPROC_OBJS)
+	$(CC) -o $@ $^
+
+# Правило для создания объектных файлов
+$(BIN_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Чистка объектов и исполняемого файла
 clean:
-	rm -rf $(OBJS) $(TARGET)
+	rm -rf $(OBJS)  $(addprefix $(BIN_DIR)/, $(TARGETS))
 
 fclean:
 	rm -rf $(FILES)
