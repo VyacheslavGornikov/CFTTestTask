@@ -239,7 +239,7 @@ int DeleteData (StatData** binData, int* size, int index)
         return EXIT_FAILURE;
     }
 }
-/**/
+
 void PrintDataByIndex (StatData* binData, int size, int index)
 {
     if (index < 0 || index > size - 1)
@@ -291,19 +291,13 @@ int StoreDump (StatData* binData, int size, const char* filePath)
         return EXIT_FAILURE;
     }
 
-    // writtenData = fwrite (binData, sizeof(StatData), size, file);
-    // if (writtenData != size)
-    // {
-    //     printf ("Ошибка записи в файл: %s\n", filePath);
-    //     fclose (file);
-    //     return EXIT_FAILURE;
-    // }
-    printf ("writtenData = %d\n", writtenData);
+    printf ("Записано данных = %d\n", writtenData);
     if (fwrite (&writtenData, sizeof(int), 1, file) != 1)
     {
-        printf ("written data fwrite fail!\n");
+        printf ("Не уадалось записать количество данных!\n");
         return EXIT_FAILURE;
     }
+
     for (int i = 0; i < size; i++)
     {
         if (fwrite (&binData[i], sizeof(StatData), 1, file) != 1)
@@ -322,9 +316,7 @@ int StoreDump (StatData* binData, int size, const char* filePath)
 int LoadDump (StatData** binData, int* size, const char* filePath)
 {
     int       dataCount = 0;
-    int       readData  = 0;
     StatData* tempData  = NULL;
-    StatData  testData  = {1, 1, 1, 1, 1};
 
     FILE* file = fopen (filePath, "rb");
     if (file == NULL)
@@ -340,7 +332,7 @@ int LoadDump (StatData** binData, int* size, const char* filePath)
         fclose (file);
         return EXIT_FAILURE;
     }
-    printf ("количество записей = %d\n", dataCount);
+    printf ("Количество записей = %d\n", dataCount);
 
     tempData = (StatData*)malloc (dataCount * sizeof(StatData));
     if (tempData == NULL)
