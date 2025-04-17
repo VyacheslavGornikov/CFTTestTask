@@ -3,6 +3,7 @@ TASK_PATH = .
 SRC_DIR = $(TASK_PATH)/src
 INC_DIR = $(TASK_PATH)/inc
 BIN_DIR = $(TASK_PATH)/bin
+TEST_FILES_DIR = $(BIN_DIR)/test_files
 
 # Находим все .c файлы в src
 SRCS = $(wildcard $(SRC_DIR)/*.c)
@@ -18,8 +19,12 @@ BINARYDB_OBJS = \
 DATAPROC_OBJS = \
     $(BIN_DIR)/dataprocessor.o
 
+# Объектные файлы для testdata
+TESTDATA_OBJS = \
+    $(BIN_DIR)/testdata.o
+
 # Цели сборки по умолчанию
-TARGETS = binarydb dataprocessor
+TARGETS = binarydb dataprocessor testdata
 
 # Текстовые файлы для сериализации
 FILES = $(wildcard $(BIN_DIR)/*.txt)
@@ -32,26 +37,37 @@ CFLAGS = -I$(INC_DIR) $(WARN_FLAGS)
 # Правило для цели сборки по умолчанию
 all: $(TARGETS)
 
+# Правило для создания папки bin
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR) \
+	mkdir -p $(TEST_FILES_DIR)
+
 # Правила для промежуточных целей сборки по умолчанию
 binarydb: $(BIN_DIR)/binarydb
 
 dataprocessor: $(BIN_DIR)/dataprocessor
 
+testdata: $(BIN_DIR)/testdata
+
 # Правило для создания бинарника binarydb
-$(BIN_DIR)/binarydb: $(BINARYDB_OBJS)
+$(BIN_DIR)/binarydb: $(BINARYDB_OBJS) | $(BIN_DIR)
 	$(CC) -o $@ $^
 
 # Правило для создания бинарника dataprocessor
-$(BIN_DIR)/dataprocessor: $(DATAPROC_OBJS)
+$(BIN_DIR)/dataprocessor: $(DATAPROC_OBJS) | $(BIN_DIR)
+	$(CC) -o $@ $^
+
+# Правило для создания бинарника testdata
+$(BIN_DIR)/testdata: $(TESTDATA_OBJS) | $(BIN_DIR)
 	$(CC) -o $@ $^
 
 # Правило для создания объектных файлов
-$(BIN_DIR)/%.o: $(SRC_DIR)/%.c
+$(BIN_DIR)/%.o: $(SRC_DIR)/%.c | $(BIN_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Чистка объектов и исполняемого файла
 clean:
-	rm -rf $(OBJS)  $(addprefix $(BIN_DIR)/, $(TARGETS))
+	rm -rf $(OBJS) $(TEST_FILES_DIR)/*.bin $(addprefix $(BIN_DIR)/, $(TARGETS))
 
 fclean:
 	rm -rf $(FILES)

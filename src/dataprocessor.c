@@ -72,8 +72,6 @@ int main (int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    PrintData (resultData, resultSize);
-
     if (SortDump (resultData, resultSize) != EXIT_SUCCESS)
     {
         fprintf (stderr, "Не удалось отсортировать массив!\n");
@@ -217,8 +215,6 @@ int LoadDump (StatData** binData, int* size, const char* filePath)
         }
     }
 
-    PrintData(tempData, dataCount);
-
     if (*binData != NULL)
         free (*binData);
 
@@ -251,6 +247,7 @@ int JoinDump (StatData* binData1, int size1,
         {
             fprintf (stderr, "Не удалось обработать массив из файла #1"
                      " на элементе %d!\n", i);
+            free (hashTable);
             return EXIT_FAILURE;
         }
     }
@@ -261,6 +258,7 @@ int JoinDump (StatData* binData1, int size1,
         {
             fprintf (stderr, "Не удалось обработать массив из файла #2"
                      " на элементе %d!\n", i);
+            free (hashTable);
             return EXIT_FAILURE;
         }
     }
@@ -279,6 +277,7 @@ int JoinDump (StatData* binData1, int size1,
     if (result == NULL)
     {
         fprintf (stderr, "Не удалось выделить память для итогового массива!\n");
+        free (hashTable);
         return EXIT_FAILURE;
     }
 
