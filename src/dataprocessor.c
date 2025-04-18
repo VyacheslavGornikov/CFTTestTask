@@ -115,7 +115,6 @@ int JoinDump (StatData* binData1, int size1,
         return EXIT_FAILURE;
     }
 
-    /* Maybe cover to ProcessDataArray */
     for (int i = 0; i < size1; i++)
     {
         if (ProcessElement (&binData1[i], hashTable) != EXIT_SUCCESS)
@@ -138,6 +137,7 @@ int JoinDump (StatData* binData1, int size1,
         }
     }
 
+    /* Считаем количество уникальных id */
     for (int i = 0; i < HASH_TABLE_SIZE; i++)
     {
         HashEntry* entry = hashTable[i];
@@ -156,6 +156,7 @@ int JoinDump (StatData* binData1, int size1,
         return EXIT_FAILURE;
     }
 
+    /* Заполняем результирующий массив записями с уникальными id */
     for (int i = 0; i < HASH_TABLE_SIZE; i++)
     {
         HashEntry* entry = hashTable[i];
@@ -194,6 +195,7 @@ int ProcessElement (StatData* element, HashEntry** hashTable)
     HashEntry* curEntry = hashTable[hash];
     HashEntry* prevEntry = NULL;
 
+    /* Ищем записи с одинаковыми id */
     while (curEntry != NULL)
     {
         if (curEntry->data.id == element->id)
@@ -211,6 +213,7 @@ int ProcessElement (StatData* element, HashEntry** hashTable)
         curEntry = curEntry->next;
     }
 
+    /* Если записи с одинаковым id не найдены, то создаем новую запись в хеш-таблице */
     HashEntry* newEntry = (HashEntry*)malloc (sizeof(HashEntry));
     if (newEntry == NULL)
     {
