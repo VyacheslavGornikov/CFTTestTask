@@ -3,6 +3,7 @@ TASK_PATH = .
 SRC_DIR = $(TASK_PATH)/src
 INC_DIR = $(TASK_PATH)/inc
 BIN_DIR = $(TASK_PATH)/bin
+OBJ_DIR = $(BIN_DIR)/obj
 TEST_FILES_DIR = $(BIN_DIR)/test_files
 
 # Находим все .c файлы в src
@@ -13,26 +14,23 @@ OBJS = $(BIN_DIR)/*.o
 
 # Объектные файлы для binarydb
 BINARYDB_OBJS = \
-    $(BIN_DIR)/binarydb.o \
-	$(BIN_DIR)/serializer.o \
-	$(BIN_DIR)/dataprinter.o
+    $(OBJ_DIR)/binarydb.o \
+	$(OBJ_DIR)/serializer.o \
+	$(OBJ_DIR)/dataprinter.o
 
 # Объектные файлы для dataprocessor
 DATAPROC_OBJS = \
-    $(BIN_DIR)/dataprocessor.o \
-	$(BIN_DIR)/serializer.o \
-	$(BIN_DIR)/dataprinter.o
+    $(OBJ_DIR)/dataprocessor.o \
+	$(OBJ_DIR)/serializer.o \
+	$(OBJ_DIR)/dataprinter.o
 
 # Объектные файлы для testdata
 TESTDATA_OBJS = \
-    $(BIN_DIR)/testdata.o \
-	$(BIN_DIR)/serializer.o
+    $(OBJ_DIR)/testdata.o \
+	$(OBJ_DIR)/serializer.o
 
 # Цели сборки по умолчанию
 TARGETS = binarydb dataprocessor testdata
-
-# Текстовые файлы для сериализации
-FILES = $(wildcard $(BIN_DIR)/*.bin)
 
 # Компилятор и флаги
 CC = gcc
@@ -45,7 +43,8 @@ all: $(TARGETS)
 # Правило для создания папки bin
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR) \
-	mkdir -p $(TEST_FILES_DIR)
+	$(TEST_FILES_DIR) \
+	$(OBJ_DIR)
 
 # Правила для промежуточных целей сборки по умолчанию
 binarydb: $(BIN_DIR)/binarydb
@@ -67,14 +66,11 @@ $(BIN_DIR)/testdata: $(TESTDATA_OBJS) | $(BIN_DIR)
 	$(CC) -o $@ $^
 
 # Правило для создания объектных файлов
-$(BIN_DIR)/%.o: $(SRC_DIR)/%.c | $(BIN_DIR)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(BIN_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Чистка объектов и исполняемого файла
 clean:
-	rm -rf $(OBJS) $(TEST_FILES_DIR)/*.bin $(addprefix $(BIN_DIR)/, $(TARGETS))
-
-fclean:
-	rm -rf $(FILES)
+	rm -rf $(OBJ_DIR)/*.o $(TEST_FILES_DIR)/*.bin $(addprefix $(BIN_DIR)/, $(TARGETS))
 
 .PHONY: all clean fclean
