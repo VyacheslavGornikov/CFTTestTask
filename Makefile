@@ -9,9 +9,6 @@ TEST_FILES_DIR = $(BIN_DIR)/test_files
 # Находим все .c файлы в src
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 
-# Определяем объектные файлы на основе исходников
-OBJS = $(BIN_DIR)/*.o
-
 # Объектные файлы для dataprocessor
 DATAPROC_OBJS = \
     $(OBJ_DIR)/dataprocessor.o \
