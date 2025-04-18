@@ -1,4 +1,6 @@
 #include "common.h"
+#include "serializer.h"
+#include "dataprinter.h"
 
 #define HASH_TABLE_SIZE 200003
 
@@ -8,12 +10,6 @@ typedef struct HashEntry
     struct HashEntry* next;
 } HashEntry;
 
-
-void PrintDataByIndex (StatData* binData, int size, int index);
-void PrintModeBinary (unsigned int mode);
-void PrintData (StatData* binData, int size);
-int StoreDump (StatData* binData, int size, const char* filePath);
-int LoadDump (StatData** binData, int* size, const char* filePath);
 int JoinDump (StatData* binData1, int size1,
               StatData* binData2, int size2,
               StatData** resultData, int* resultSize);
@@ -99,127 +95,6 @@ int main (int argc, char *argv[])
                  "%s!\n", filePath);
         return EXIT_FAILURE;
     }
-
-    return EXIT_SUCCESS;
-}
-
-void PrintDataByIndex (StatData* binData, int size, int index)
-{
-    if (index < 0 || index > size - 1)
-    {
-        printf ("Данных с таким индексом не существует!\n");
-    }
-    else
-    {
-        printf("%-17d 0x%-17lX %-19d %-19.3e %-19c ", index + 1, binData[index].id,
-                binData[index].count, binData[index].cost,
-                binData[index].primary ? 'y' : 'n');
-        PrintModeBinary (binData[index].mode);
-        putchar ('\n');
-    }
-}
-
-void PrintModeBinary (unsigned int mode)
-{
-    for (int i = MAX_MODE_BITS - 1; i >= 0; i--)
-    {
-        putchar (mode & (1 << i) ? '1' : '0');
-    }
-}
-
-void PrintData (StatData* binData, int size)
-{
-    printf("%-19s %-19s %-19s %-19s %-19s %-19s\n",
-            "№", "id", "count", "cost", "primary", "mode");
-    for (int i = 0; i < size; i++)
-    {
-        PrintDataByIndex (binData, size, i);
-    }
-}
-
-int StoreDump (StatData* binData, int size, const char* filePath)
-{
-    int writtenData = size;
-
-    if (binData == NULL)
-    {
-        printf ("Хранилище данных пусто!\n");
-        return EXIT_FAILURE;
-    }
-
-    FILE* file = fopen (filePath, "wb");
-    if (file == NULL)
-    {
-        printf ("Не удалось создать файл по пути: %s\n", filePath);
-        return EXIT_FAILURE;
-    }
-
-    printf ("Количество записанных данных = %d\n", writtenData);
-    if (fwrite (&writtenData, sizeof(int), 1, file) != 1)
-    {
-        printf ("Не уадалось записать количество данных!\n");
-        return EXIT_FAILURE;
-    }
-
-    for (int i = 0; i < size; i++)
-    {
-        if (fwrite (&binData[i], sizeof(StatData), 1, file) != 1)
-        {
-            printf ("Ошибка записи в файл: %s\n", filePath);
-            fclose (file);
-            return EXIT_FAILURE;
-        }
-    }
-
-    fclose (file);
-    return EXIT_SUCCESS;
-}
-
-int LoadDump (StatData** binData, int* size, const char* filePath)
-{
-    int       dataCount = 0;
-    StatData* tempData  = NULL;
-
-    FILE* file = fopen (filePath, "rb");
-    if (file == NULL)
-    {
-        printf ("Не удалось открыть файл по пути: %s\n", filePath);
-        return EXIT_FAILURE;
-    }
-
-    if (fread (&dataCount, sizeof(int), 1, file) != 1)
-    {
-        printf ("Не удалось прочитать количество записей в файле %s!\n",
-                filePath);
-        fclose (file);
-        return EXIT_FAILURE;
-    }
-    printf ("Количество загруженных записей = %d\n", dataCount);
-
-    tempData = (StatData*)malloc (dataCount * sizeof(StatData));
-    if (tempData == NULL)
-    {
-        printf ("Ошибка выделения памяти!\n");
-        fclose (file);
-        return EXIT_FAILURE;
-    }
-
-    for (int i = 0; i < dataCount; i++)
-    {
-        if (fread (&tempData[i], sizeof(StatData), 1, file) != 1)
-        {
-            printf ("Ошибка чтения записи %d из файла: %s\n", i + 1,filePath);
-            free (tempData);
-            fclose (file);
-            return EXIT_FAILURE;
-        }
-    }
-
-    if (*binData != NULL)
-        free (*binData);
-
-    *binData = tempData;
-    *size = dataCount;
 
     return EXIT_SUCCESS;
 }

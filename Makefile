@@ -13,21 +13,26 @@ OBJS = $(BIN_DIR)/*.o
 
 # Объектные файлы для binarydb
 BINARYDB_OBJS = \
-    $(BIN_DIR)/binarydb.o
+    $(BIN_DIR)/binarydb.o \
+	$(BIN_DIR)/serializer.o \
+	$(BIN_DIR)/dataprinter.o
 
 # Объектные файлы для dataprocessor
 DATAPROC_OBJS = \
-    $(BIN_DIR)/dataprocessor.o
+    $(BIN_DIR)/dataprocessor.o \
+	$(BIN_DIR)/serializer.o \
+	$(BIN_DIR)/dataprinter.o
 
 # Объектные файлы для testdata
 TESTDATA_OBJS = \
-    $(BIN_DIR)/testdata.o
+    $(BIN_DIR)/testdata.o \
+	$(BIN_DIR)/serializer.o
 
 # Цели сборки по умолчанию
 TARGETS = binarydb dataprocessor testdata
 
 # Текстовые файлы для сериализации
-FILES = $(wildcard $(BIN_DIR)/*.txt)
+FILES = $(wildcard $(BIN_DIR)/*.bin)
 
 # Компилятор и флаги
 CC = gcc

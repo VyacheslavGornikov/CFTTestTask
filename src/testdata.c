@@ -1,4 +1,5 @@
 #include "common.h"
+#include "serializer.h"
 #include <sys/time.h>
 #include <math.h>
 
@@ -19,10 +20,6 @@ typedef struct TestCase
     int expectedSize;
 } TestCase;
 
-
-
-int StoreDump (StatData* binData, int size, const char* filePath);
-int LoadDump (StatData** binData, int* size, const char* filePath);
 void RunTest (TestCase* test, int* passed, double* totalTime);
 int CompareStatData (const StatData* output, const StatData* expected, int size,
                      char* errStr);
@@ -32,19 +29,47 @@ int CompareCostFloat (float cost1, float cost2);
 /* Case 1 */
 /* Содержимое для исходных файлов */
 const StatData case_1_in_a[2] =
-{{.id = 90889, .count = 13, .cost = 3.567, .primary = 0, .mode=3 },
-{.id = 90089, .count = 1, .cost = 88.90, .primary = 1, .mode=0 }};
+{
+    {.id = 90889, .count = 13, .cost = 3.567, .primary = 0, .mode =3  },
+    {.id = 90089, .count = 1, .cost = 88.90, .primary = 1, .mode = 0 }
+};
 const StatData case_1_in_b[2] =
-{{.id = 90089, .count = 13, .cost = 0.011, .primary = 0, .mode=2 },
-{.id = 90189, .count = 1000, .cost = 1.00003, .primary = 1, .mode=2}};
+{
+    {.id = 90089, .count = 13, .cost = 0.011, .primary = 0, .mode = 2 },
+    {.id = 90189, .count = 1000, .cost = 1.00003, .primary = 1, .mode = 2}
+};
 /* Ожидаемый результат обработки */
 const StatData case_1_out[3] =
-{{.id = 90189, .count = 1000, .cost = 1.00003, .primary = 1, .mode = 2 },
-{.id = 90889, .count = 13, .cost = 3.567, .primary = 0, .mode = 3 },
-{.id = 90089, .count = 14, .cost = 88.911, .primary = 0, .mode = 2 }};
+{
+    {.id = 90189, .count = 1000, .cost = 1.00003, .primary = 1, .mode = 2 },
+    {.id = 90889, .count = 13, .cost = 3.567, .primary = 0, .mode = 3 },
+    {.id = 90089, .count = 14, .cost = 88.911, .primary = 0, .mode = 2 }
+};
+
+/* Case 2 */
+/* Содержимое для исходных файлов */
+const StatData case_2_in_a[4] =
+{
+    {.id = -1, .count = 13, .cost = 3.567, .primary = 0, .mode=3 },
+    {.id = 90089, .count = -1, .cost = 88.90, .primary = 1, .mode = 0 },
+    {.id = 90089, .count = 1, .cost = -88.90, .primary = 1, .mode = 0 },
+    {.id = 200000, .count = 1, .cost = 88.90, .primary = 1, .mode = 0 }
+};
+const StatData case_2_in_b[2] =
+{
+    {.id = 100000, .count = 1000, .cost = 1.00003, .primary = 1, .mode = 2},
+    {.id = 200000, .count = 1000, .cost = 21.12003, .primary = 0, .mode = 3}
+};
+/* Ожидаемый результат обработки */
+const StatData case_2_out[2] =
+{
+    {.id = 100000, .count = 1000, .cost = 1.00003, .primary = 1, .mode = 2},
+    {.id = 200000, .count = 1001, .cost = 110.02003, .primary = 0, .mode = 3}
+};
 
 
-TestCase testCases[] = {
+TestCase testCases[] =
+{
     {
         .name = "case_1",
         .inputA = (StatData*)case_1_in_a,
@@ -53,6 +78,15 @@ TestCase testCases[] = {
         .sizeB = 2,
         .expectedOut = (StatData*)case_1_out,
         .expectedSize = 3
+    },
+    {
+        .name = "case_2",
+        .inputA = (StatData*)case_2_in_a,
+        .sizeA = 4,
+        .inputB = (StatData*)case_2_in_b,
+        .sizeB = 2,
+        .expectedOut = (StatData*)case_2_out,
+        .expectedSize = 2
     }
 };
 
@@ -89,7 +123,7 @@ void RunTest (TestCase* test, int* passed, double* totalTime)
     long           seconds = 0;
     long           micros = 0;
     double         testTime = 0;
-    char           compareErr[ERR_STR_LEN];
+    char           compareErr[ERR_STR_LEN] = "";
 
 
 
@@ -161,98 +195,9 @@ void RunTest (TestCase* test, int* passed, double* totalTime)
 
     if (isSuccessful)
     {
-        printf("%s -> %s (%.3f сек)\n", PASS_STR, test->name, testTime);
+        printf("\n%s -> %s (%.3f сек)\n", PASS_STR, test->name, testTime);
         (*passed)++;
     }
-}
-
-int StoreDump (StatData* binData, int size, const char* filePath)
-{
-    int writtenData = size;
-
-    if (binData == NULL)
-    {
-        printf ("Хранилище данных пусто!\n");
-        return EXIT_FAILURE;
-    }
-
-    FILE* file = fopen (filePath, "wb");
-    if (file == NULL)
-    {
-        printf ("Не удалось создать файл по пути: %s\n", filePath);
-        return EXIT_FAILURE;
-    }
-
-    FilterInvalidData(binData, size);
-
-    printf ("Количество записанных данных = %d\n", writtenData);
-    if (fwrite (&writtenData, sizeof(int), 1, file) != 1)
-    {
-        printf ("Не уадалось записать количество данных!\n");
-        return EXIT_FAILURE;
-    }
-
-    for (int i = 0; i < size; i++)
-    {
-        if (fwrite (&binData[i], sizeof(StatData), 1, file) != 1)
-        {
-            printf ("Ошибка записи в файл: %s\n", filePath);
-            fclose (file);
-            return EXIT_FAILURE;
-        }
-    }
-
-    fclose (file);
-    return EXIT_SUCCESS;
-}
-
-int LoadDump (StatData** binData, int* size, const char* filePath)
-{
-    int       dataCount = 0;
-    StatData* tempData  = NULL;
-
-    FILE* file = fopen (filePath, "rb");
-    if (file == NULL)
-    {
-        printf ("Не удалось открыть файл по пути: %s\n", filePath);
-        return EXIT_FAILURE;
-    }
-
-    if (fread (&dataCount, sizeof(int), 1, file) != 1)
-    {
-        printf ("Не удалось прочитать количество записей в файле %s!\n",
-                filePath);
-        fclose (file);
-        return EXIT_FAILURE;
-    }
-    printf ("Количество загруженных записей = %d\n", dataCount);
-
-    tempData = (StatData*)malloc (dataCount * sizeof(StatData));
-    if (tempData == NULL)
-    {
-        printf ("Ошибка выделения памяти!\n");
-        fclose (file);
-        return EXIT_FAILURE;
-    }
-
-    for (int i = 0; i < dataCount; i++)
-    {
-        if (fread (&tempData[i], sizeof(StatData), 1, file) != 1)
-        {
-            printf ("Ошибка чтения записи %d из файла: %s\n", i + 1,filePath);
-            free (tempData);
-            fclose (file);
-            return EXIT_FAILURE;
-        }
-    }
-
-    if (*binData != NULL)
-        free (*binData);
-
-    *binData = tempData;
-    *size = dataCount;
-
-    return EXIT_SUCCESS;
 }
 
 int CompareStatData (const StatData* output, const StatData* expected, int size,
