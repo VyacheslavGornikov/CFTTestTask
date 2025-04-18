@@ -12,12 +12,6 @@ SRCS = $(wildcard $(SRC_DIR)/*.c)
 # Определяем объектные файлы на основе исходников
 OBJS = $(BIN_DIR)/*.o
 
-# Объектные файлы для binarydb
-BINARYDB_OBJS = \
-    $(OBJ_DIR)/binarydb.o \
-	$(OBJ_DIR)/serializer.o \
-	$(OBJ_DIR)/dataprinter.o
-
 # Объектные файлы для dataprocessor
 DATAPROC_OBJS = \
     $(OBJ_DIR)/dataprocessor.o \
@@ -30,7 +24,7 @@ TESTDATA_OBJS = \
 	$(OBJ_DIR)/serializer.o
 
 # Цели сборки по умолчанию
-TARGETS = binarydb dataprocessor testdata
+TARGETS = dataprocessor testdata
 
 # Компилятор и флаги
 CC = gcc
@@ -47,15 +41,10 @@ $(BIN_DIR):
 	$(OBJ_DIR)
 
 # Правила для промежуточных целей сборки по умолчанию
-binarydb: $(BIN_DIR)/binarydb
 
 dataprocessor: $(BIN_DIR)/dataprocessor
 
 testdata: $(BIN_DIR)/testdata
-
-# Правило для создания бинарника binarydb
-$(BIN_DIR)/binarydb: $(BINARYDB_OBJS) | $(BIN_DIR)
-	$(CC) -o $@ $^
 
 # Правило для создания бинарника dataprocessor
 $(BIN_DIR)/dataprocessor: $(DATAPROC_OBJS) | $(BIN_DIR)
